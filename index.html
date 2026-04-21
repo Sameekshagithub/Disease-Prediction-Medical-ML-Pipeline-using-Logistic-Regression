@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedPredict — Disease Prediction AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blush:       #fce4ec;
+    --blush-mid:   #f8bbd0;
+    --rose:        #e91e8c;
+    --rose-dark:   #880e4f;
+    --rose-soft:   #f06292;
+    --pink-pale:   #fff0f5;
+    --pink-light:  #fce4ec;
+    --cream:       #fff8fb;
+    --text-dark:   #3d1535;
+    --text-mid:    #7b3560;
+    --text-light:  #b56a90;
+    --white:       #ffffff;
+    --shadow:      0 8px 40px rgba(136,14,79,.10);
+    --shadow-sm:   0 2px 12px rgba(136,14,79,.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--blush);
+    background-image:
+      radial-gradient(ellipse at 10% 20%, #fce4ec 0%, transparent 60%),
+      radial-gradient(ellipse at 90% 80%, #f8bbd0 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 50%, #fff0f5 0%, transparent 80%);
+    min-height: 100vh;
+    color: var(--text-dark);
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, var(--rose-dark) 0%, #ad1457 60%, var(--rose) 100%);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 36px 40px 32px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo-icon {
+    width: 52px; height: 52px;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  .logo-text h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .logo-text p {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.7);
+    margin-top: 3px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .metric-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50px;
+    padding: 6px 16px;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(8px);
+  }
+  .pill span { font-weight: 600; color: #fff; }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(232,30,140,.08);
+  }
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: var(--rose-dark);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ── Form Grid ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-mid);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+  .field label .unit {
+    font-weight: 400;
+    color: var(--text-light);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+  .field input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--blush-mid);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    background: var(--pink-pale);
+    transition: all 0.2s ease;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  .field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .field input[type="number"]:focus {
+    border-color: var(--rose);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(233,30,140,.08);
+  }
+
+  .range-hint {
+    font-size: 0.7rem;
+    color: var(--text-light);
+  }
+
+  /* ── Predict Button ── */
+  .btn-predict {
+    width: 100%;
+    margin-top: 28px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--rose-dark), var(--rose));
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-predict:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px rgba(136,14,79,.3);
+  }
+  .btn-predict:active { transform: translateY(0); }
+  .btn-predict.loading { opacity: 0.8; pointer-events: none; }
+
+  /* ── Results Panel ── */
+  .result-panel { position: sticky; top: 24px; }
+
+  .result-idle {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-light);
+  }
+  .result-idle .idle-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
+  .result-idle p { font-size: 0.95rem; line-height: 1.6; }
+
+  /* ── Gauge ── */
+  .gauge-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+  .gauge-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    color: var(--text-mid);
+    margin-bottom: 12px;
+  }
+  .gauge-svg { width: 200px; height: 110px; }
+
+  .prob-display {
+    text-align: center;
+    margin-top: 12px;
+  }
+  .prob-pct {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.5rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .prob-sub { font-size: 0.8rem; color: var(--text-light); margin-top: 4px; }
+
+  /* ── Verdict Badge ── */
+  .verdict {
+    text-align: center;
+    padding: 16px 20px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .verdict.negative { background: #e8f5e9; color: #2e7d32; border: 1.5px solid #a5d6a7; }
+  .verdict.positive { background: #fce4ec; color: #880e4f; border: 1.5px solid #f48fb1; }
+
+  /* ── Feature Impact ── */
+  .impact-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-mid);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .impact-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .impact-name {
+    width: 130px;
+    font-size: 0.82rem;
+    color: var(--text-dark);
+    flex-shrink: 0;
+  }
+  .impact-bar-wrap {
+    flex: 1;
+    height: 8px;
+    background: var(--blush);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+  }
+  .impact-bar {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.8s cubic-bezier(.23,1,.32,1);
+  }
+  .impact-val {
+    width: 50px;
+    text-align: right;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-mid);
+  }
+
+  /* ── Metrics Table ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .metric-card {
+    background: var(--pink-pale);
+    border: 1px solid var(--blush-mid);
+    border-radius: 14px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .metric-card .metric-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: var(--rose-dark);
+    line-height: 1;
+  }
+  .metric-card .metric-name {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+  }
+  .metric-card.highlight { background: linear-gradient(135deg,#fce4ec,#f8bbd0); }
+
+  /* ── Info Banner ── */
+  .info-banner {
+    background: linear-gradient(135deg,#fff3e0,#ffe0b2);
+    border: 1px solid #ffcc80;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-top: 20px;
+    font-size: 0.82rem;
+    color: #e65100;
+    line-height: 1.5;
+  }
+  .info-banner strong { display: block; margin-bottom: 4px; }
+
+  /* ── Eval Plot ── */
+  .eval-section { grid-column: 1 / -1; }
+  .eval-img {
+    width: 100%;
+    border-radius: 16px;
+    margin-top: 8px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.78rem;
+    color: var(--text-light);
+  }
+
+  /* ── Spinner ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+    .result-panel { position: static; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="logo-icon">🏥</div>
+      <div class="logo-text">
+        <h1>MedPredict</h1>
+        <p>Diabetes Risk — Logistic Regression ML</p>
+      </div>
+    </div>
+    <div class="metric-pills" id="headerPills">
+      {% if model_info %}
+      <div class="pill">🎯 AUC <span>{{ "%.3f"|format(model_info.roc_auc) }}</span></div>
+      <div class="pill">⚡ F1 <span>{{ "%.3f"|format(model_info.f1) }}</span></div>
+      <div class="pill">🔍 Recall <span>{{ "%.3f"|format(model_info.recall) }}</span></div>
+      <div class="pill">📊 Accuracy <span>{{ "%.3f"|format(model_info.accuracy) }}</span></div>
+      {% else %}
+      <div class="pill">⚠️ Run Jupyter Notebook to train model</div>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ── Input Form ── -->
+  <div>
+    <div class="card">
+      <div class="card-title">🩺 Patient Parameters</div>
+      <div class="form-grid">
+        {% for feat, meta in features.items() %}
+        <div class="field">
+          <label>
+            {{ meta.label }}
+            <span class="unit">{{ meta.unit }}</span>
+          </label>
+          <div class="input-wrap">
+            <input
+              type="number"
+              id="{{ feat }}"
+              name="{{ feat }}"
+              min="{{ meta.min }}"
+              max="{{ meta.max }}"
+              step="{{ meta.step }}"
+              placeholder="{{ ((meta.min + meta.max) / 2)|round(1) }}"
+              value=""
+            >
+          </div>
+          <div class="range-hint">Range: {{ meta.min }} – {{ meta.max }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <button class="btn-predict" id="predictBtn" onclick="predict()">
+        <div class="spinner" id="spinner"></div>
+        <span id="btnText">Run Prediction</span>
+      </button>
+    </div>
+
+    <!-- Model Metrics -->
+    {% if model_info %}
+    <div class="card" style="margin-top:24px">
+      <div class="card-title">📊 Model Evaluation Metrics</div>
+      <p style="font-size:.85rem;color:var(--text-light);margin-bottom:16px">
+        Accuracy alone is misleading in medicine. We evaluate holistically:
+      </p>
+      <div class="metrics-grid">
+        <div class="metric-card highlight">
+          <div class="metric-val">{{ "%.1f"|format(model_info.roc_auc * 100) }}%</div>
+          <div class="metric-name">ROC-AUC ★</div>
+        </div>
+        <div class="metric-card highlight">
+          <div class="metric-val">{{ "%.1f"|format(model_info.recall * 100) }}%</div>
+          <div class="metric-name">Recall (Sensitivity) ★</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">{{ "%.1f"|format(model_info.accuracy * 100) }}%</div>
+          <div class="metric-name">Accuracy</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">{{ "%.1f"|format(model_info.f1 * 100) }}%</div>
+          <div class="metric-name">F1 Score</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">{{ "%.1f"|format(model_info.precision * 100) }}%</div>
+          <div class="metric-name">Precision</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">LR</div>
+          <div class="metric-name">Algorithm</div>
+        </div>
+      </div>
+
+      <div class="info-banner" style="margin-top:16px">
+        <strong>⚠️ Why Accuracy Isn't Enough in Medicine</strong>
+        A naive model predicting "no disease" achieves ~65% accuracy but 0% recall —
+        missing every sick patient. <strong>Recall</strong> and <strong>ROC-AUC</strong>
+        are the critical metrics here. False Negatives cost lives.
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── Result Panel ── -->
+  <div class="result-panel">
+    <div class="card" id="resultCard">
+      <div class="card-title">📋 Prediction Result</div>
+
+      <div class="result-idle" id="idleState">
+        <div class="idle-icon">🔬</div>
+        <p>Enter patient values and click <strong>Run Prediction</strong> to get a risk assessment.</p>
+      </div>
+
+      <div id="resultState" style="display:none">
+        <!-- Gauge -->
+        <div class="gauge-wrap">
+          <div class="gauge-label">Diabetes Risk Probability</div>
+          <svg class="gauge-svg" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#27ae60"/>
+                <stop offset="50%" stop-color="#f39c12"/>
+                <stop offset="100%" stop-color="#e74c3c"/>
+              </linearGradient>
+            </defs>
+            <!-- Track -->
+            <path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#f8bbd0" stroke-width="14" fill="none" stroke-linecap="round"/>
+            <!-- Fill -->
+            <path id="gaugeFill" d="M 20 100 A 80 80 0 0 1 180 100" stroke="url(#gaugeGrad)" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="251" style="transition:stroke-dashoffset 1.2s cubic-bezier(.23,1,.32,1)"/>
+            <!-- Needle -->
+            <line id="gaugeNeedle" x1="100" y1="100" x2="100" y2="30" stroke="#880e4f" stroke-width="3" stroke-linecap="round" style="transform-origin:100px 100px; transition:transform 1.2s cubic-bezier(.23,1,.32,1)"/>
+            <circle cx="100" cy="100" r="5" fill="#880e4f"/>
+            <!-- Labels -->
+            <text x="14" y="120" font-size="9" fill="#888">0%</text>
+            <text x="93" y="16" font-size="9" fill="#888">50%</text>
+            <text x="178" y="120" font-size="9" fill="#888">100%</text>
+          </svg>
+          <div class="prob-display">
+            <div class="prob-pct" id="probPct" style="color:#880e4f">—%</div>
+            <div class="prob-sub">probability of diabetes</div>
+          </div>
+        </div>
+
+        <!-- Verdict -->
+        <div class="verdict" id="verdictBadge">—</div>
+
+        <!-- Feature Impact -->
+        <div class="impact-title">Top Contributing Factors</div>
+        <div id="impactRows"></div>
+
+        <div class="info-banner" style="margin-top:16px;background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-color:#f48fb1;color:#880e4f">
+          <strong>⚕️ Clinical Disclaimer</strong>
+          This is an ML demonstration. Not a substitute for professional medical diagnosis.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Evaluation Plot ── -->
+  <div class="eval-section">
+    <div class="card">
+      <div class="card-title">📈 Model Evaluation Dashboard</div>
+      <p style="font-size:.85rem;color:var(--text-light);margin-bottom:4px">
+        Generated by the Jupyter notebook — Confusion Matrix · ROC · PR Curve · Feature Importance · Cross-Validation · Probability Distribution
+      </p>
+      <img src="/static/evaluation_plot.png" alt="Model Evaluation Plots" class="eval-img"
+           onerror="this.style.display='none'; document.getElementById('plotMsg').style.display='block'">
+      <div id="plotMsg" style="display:none;text-align:center;padding:48px;color:var(--text-light);background:var(--pink-pale);border-radius:16px;margin-top:8px">
+        📊 Run the Jupyter notebook to generate evaluation plots
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>MedPredict · Logistic Regression · Flask 8080 · For Educational Purposes Only</footer>
+
+<script>
+const FEATURES = {{ features | tojson }};
+
+function setGauge(prob) {
+  const pct = prob * 100;
+  // Dashoffset: track circumference ~ 251px
+  const fill = 251 - (251 * prob);
+  document.getElementById('gaugeFill').style.strokeDashoffset = fill;
+  // Needle: -90deg = 0%, 0deg = 50%, +90deg = 100%
+  const deg = -90 + (prob * 180);
+  document.getElementById('gaugeNeedle').style.transform = `rotate(${deg}deg)`;
+}
+
+async function predict() {
+  const btn = document.getElementById('predictBtn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btnText');
+
+  // Collect inputs
+  const payload = {};
+  for (const feat of Object.keys(FEATURES)) {
+    const val = document.getElementById(feat).value;
+    if (val === '') { alert(`Please enter a value for ${FEATURES[feat].label}`); return; }
+    payload[feat] = parseFloat(val);
+  }
+
+  // Loading state
+  btn.classList.add('loading');
+  spinner.style.display = 'block';
+  btnText.textContent = 'Analyzing...';
+
+  try {
+    const res = await fetch('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+
+    showResult(data);
+  } catch(e) {
+    alert('Network error: ' + e.message);
+  } finally {
+    btn.classList.remove('loading');
+    spinner.style.display = 'none';
+    btnText.textContent = 'Run Prediction';
+  }
+}
+
+function showResult(data) {
+  document.getElementById('idleState').style.display = 'none';
+  document.getElementById('resultState').style.display = 'block';
+
+  // Gauge
+  setGauge(data.probability);
+
+  // Probability display
+  const probEl = document.getElementById('probPct');
+  probEl.textContent = data.probability_pct + '%';
+  probEl.style.color = data.risk_color;
+
+  // Verdict
+  const verdict = document.getElementById('verdictBadge');
+  verdict.className = 'verdict ' + (data.prediction === 1 ? 'positive' : 'negative');
+  verdict.innerHTML = data.prediction === 1
+    ? `🔴 <strong>${data.label}</strong> — ${data.risk_level} Risk`
+    : `🟢 <strong>${data.label}</strong> — ${data.risk_level} Risk`;
+
+  // Feature impact bars
+  const container = document.getElementById('impactRows');
+  container.innerHTML = '';
+  const contribs = Object.entries(data.contributions).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,6);
+  const maxVal = Math.max(...contribs.map(c=>Math.abs(c[1])));
+
+  contribs.forEach(([feat, val]) => {
+    const pct = maxVal > 0 ? (Math.abs(val) / maxVal * 100) : 0;
+    const color = val > 0 ? '#e91e8c' : '#5c6bc0';
+    const label = FEATURES[feat]?.label || feat;
+    container.innerHTML += `
+      <div class="impact-row">
+        <div class="impact-name">${label}</div>
+        <div class="impact-bar-wrap">
+          <div class="impact-bar" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <div class="impact-val" style="color:${color}">${val > 0 ? '+' : ''}${val.toFixed(2)}</div>
+      </div>`;
+  });
+}
+</script>
+
+</body>
+</html>
